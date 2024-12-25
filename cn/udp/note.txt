@@ -1,0 +1,148 @@
+### **Client Code (Detailed Explanation)**
+
+1. **Create Socket**: 
+   - The client begins by creating a **socket** using `socket()`.
+   - A **socket** is essentially an endpoint for communication in a networked environment, enabling the client to send and receive data.
+   - In our case, we use **UDP (SOCK_DGRAM)**, which is a connectionless protocol, meaning there is no need to establish a direct connection before sending data.
+   
+   ```c
+   sckfd = socket(AF_INET, SOCK_DGRAM, 0);
+   ```
+   - `AF_INET`: This specifies the address family (IPv4).
+   - `SOCK_DGRAM`: This specifies that we are using UDP for communication.
+
+2. **Set Server Info**:
+   - The client needs to know where the server is located (i.e., its IP address and port number).
+   - The client uses `inet_pton()` to set the IP address to `127.0.0.1` (localhost). This means that both the client and server will communicate on the same machine.
+   - The port number is set to `1500` using `htons()`. This ensures the client communicates with the server on the correct port.
+   
+   ```c
+   serv_addr.sin_family = AF_INET; 
+   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Localhost address
+   serv_addr.sin_port = htons(1500);  // Port 1500
+   ```
+
+3. **Send Data**:
+   - After setting up the server address, the client enters a loop where it asks the user for input.
+   - The user enters a string (e.g., "Hello Server!").
+   - The client sends this string to the server using `sendto()`.
+   - `sendto()` is a function used in UDP to send data to a specific destination (IP address + port). The data is sent to `127.0.0.1:1500`, where the server is listening.
+
+   ```c
+   get = sendto(sckfd, buf, strlen(buf) + 1, 0, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+   ```
+   - `buf`: The message to be sent.
+   - `strlen(buf) + 1`: The length of the message, including the null-terminator (`+1`).
+   - `(struct sockaddr *)&serv_addr`: The destination address of the server.
+
+4. **Exit Condition**:
+   - The client sends messages continuously until the user types `"x"`.
+   - When `"x"` is entered, the client stops the loop and exits.
+   
+   ```c
+   if (strcmp(buf, "x") == 0)
+       break;  // Exit if the user enters "x"
+   ```
+
+5. **Close Socket**:
+   - After finishing the message transmission, the client closes the socket with `close()`.
+   - This closes the communication channel and releases system resources.
+
+   ```c
+   close(sckfd);
+   ```
+
+---
+
+### **Server Code (Detailed Explanation)**
+
+1. **Create Socket**:
+   - Just like the client, the server creates a socket to listen for incoming data from clients.
+   - The socket is created using `socket()` with `SOCK_DGRAM` to indicate that it will use UDP.
+   
+   ```c
+   sckfd = socket(AF_INET, SOCK_DGRAM, 0);
+   ```
+
+2. **Set Up Server Address**:
+   - The server also needs to know where to listen for incoming messages.
+   - It sets up its own **IP address** to `INADDR_ANY` (which allows it to listen on all available network interfaces on the machine) and the **port number** to `1500` (the same port the client sends data to).
+   
+   ```c
+   serv_addr.sin_family = AF_INET;
+   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);  // Listen on any network interface
+   serv_addr.sin_port = htons(1500);  // Listen on port 1500
+   ```
+
+3. **Bind the Socket**:
+   - The server uses `bind()` to bind its socket to the specified address and port.
+   - This means the server is telling the system that it wants to receive data on port `1500` and listen on any network interface.
+   
+   ```c
+   if (bind(sckfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+       perror("Can not bind");
+       exit(0);
+   }
+   ```
+
+4. **Receive Data**:
+   - The server then enters a loop to continuously receive messages from the client.
+   - It uses `recvfrom()` to receive the message. The function will block and wait until a message is received from the client.
+   - The received message is stored in `buf` and printed on the screen.
+   
+   ```c
+   get = recvfrom(sckfd, buf, sizeof(buf), 0, (struct sockaddr *)&cli_addr, &servlen);
+   ```
+
+5. **Exit Condition**:
+   - If the server receives the string `"x"`, it stops receiving data and exits the loop.
+   
+   ```c
+   if (strcmp(buf, "x") == 0) {
+       break;  // Exit if the message is "x"
+   }
+   ```
+
+6. **Close Socket**:
+   - After the loop ends, the server closes the socket with `close()`, ending the server’s communication.
+
+   ```c
+   close(sckfd);
+   ```
+
+---
+
+### **How Client and Server Communicate:**
+
+1. **Client** sends data to the **Server**:
+   - The client sends a message to the server's IP address (`127.0.0.1`) on port `1500`.
+   - The server listens on the same address and port.
+   - The client sends messages one at a time, and the server receives and prints them.
+
+2. **Server** responds with received data:
+   - The server simply prints the received messages.
+   - If the message is `"x"`, it stops and shuts down.
+
+3. **UDP Characteristics**:
+   - **UDP** (User Datagram Protocol) is **connectionless**, meaning the client doesn't have to establish a connection with the server before sending data.
+   - There’s no acknowledgment of received messages (unlike TCP), so messages can be lost if the network is unreliable.
+
+4. **Localhost Communication**:
+   - The communication happens on the **same PC** using `127.0.0.1`, which is the IP address for the local machine (localhost).
+   - Both the client and server run on the same machine, using the same network interface (localhost).
+
+---
+
+### **Summary of Both Programs:**
+
+- The **Client**:
+  - Creates a socket.
+  - Sends messages to the server on `127.0.0.1:1500`.
+  - Stops when `"x"` is entered.
+
+- The **Server**:
+  - Creates a socket and binds to `127.0.0.1:1500`.
+  - Listens for incoming messages from the client.
+  - Prints the received messages and stops if `"x"` is received.
+
+Both programs are designed to work on the same machine, communicating over the same local network using UDP on port `1500`.

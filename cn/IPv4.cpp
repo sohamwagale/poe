@@ -1,141 +1,38 @@
-// C program to determine class, Network
-// and Host ID of an IPv4 address
-#include<stdio.h>
-#include<string.h>
+#include <stdio.h>
 
-// Function to find out the Class
-char findClass(char str[])
-{
-	// storing first octet in arr[] variable
-	char arr[4];
-	int i = 0;
-	while (str[i] != '.')
-	{
-		arr[i] = str[i];
-		i++;
-	}
-	i--;
+int main() {
+    int a, b, c, d; // Variables for the 4 octets of the IP address
+    char class;     // To store the class of the IP address
 
-	// converting str[] variable into number for
-	// comparison
-	int ip = 0, j = 1;
-	while (i >= 0)
-	{
-		ip = ip + (str[i] - '0') * j;
-		j = j * 10;
-		i--;
-	}
+    // Input the IP address
+    printf("Enter an IPv4 address (e.g., 192.168.1.1): ");
+    scanf("%d.%d.%d.%d", &a, &b, &c, &d);
 
-	// Class A
-	if (ip >=1 && ip <= 126)
-		return 'A';
+    // Determine the class and calculate Network ID and Host ID
+    if (a >= 1 && a <= 126) {
+        class = 'A';
+        printf("Class: %c\n", class);
+        printf("Network ID: %d.0.0.0\n", a);
+        printf("Host ID: 0.%d.%d.%d\n", b, c, d);
+    } else if (a >= 128 && a <= 191) {
+        class = 'B';
+        printf("Class: %c\n", class);
+        printf("Network ID: %d.%d.0.0\n", a, b);
+        printf("Host ID: 0.0.%d.%d\n", c, d);
+    } else if (a >= 192 && a <= 223) {
+        class = 'C';
+        printf("Class: %c\n", class);
+        printf("Network ID: %d.%d.%d.0\n", a, b, c);
+        printf("Host ID: 0.0.0.%d\n", d);
+    } else if (a >= 224 && a <= 239) {
+        class = 'D';
+        printf("Class: %c (Used for Multicasting)\n", class);
+    } else if (a >= 240 && a <= 255) {
+        class = 'E';
+        printf("Class: %c (Used for Experimental purposes)\n", class);
+    } else {
+        printf("Invalid IP address.\n");
+    }
 
-	// Class B
-	else if (ip >= 128 && ip <= 191)
-		return 'B';
-
-	// Class C
-	else if (ip >= 192 && ip <= 223)
-		return 'C';
-
-	// Class D
-	else if (ip >= 224 && ip <= 239)
-		return 'D';
-
-	// Class E
-	else
-		return 'E';
-}
-
-// Function to separate Network ID as well as
-// Host ID and print them
-void separate(char str[], char ipClass)
-{
-	// Initializing network and host array to NULL
-	char network[12], host[12];
-	for (int k = 0; k < 12; k++)
-		network[k] = host[k] = '\0';
-
-	// for class A, only first octet is Network ID
-	// and rest are Host ID
-	if (ipClass == 'A')
-	{
-		int i = 0, j = 0;
-		while (str[j] != '.')
-			network[i++] = str[j++];
-		i = 0;
-		j++;
-		while (str[j] != '\0')
-			host[i++] = str[j++];
-		printf("Network ID is %s\n", network);
-		printf("Host ID is %s\n", host);
-	}
-
-	// for class B, first two octet are Network ID
-	// and rest are Host ID
-	else if (ipClass == 'B')
-	{
-		int i = 0, j = 0, dotCount = 0;
-
-		// storing in network[] up to 2nd dot
-		// dotCount keeps track of number of
-		// dots or octets passed
-		while (dotCount < 2)
-		{
-			network[i++] = str[j++];
-			if (str[j] == '.')
-				dotCount++;
-		}
-		i = 0;
-		j++;
-
-		while (str[j] != '\0')
-			host[i++] = str[j++];
-
-		printf("Network ID is %s\n", network);
-		printf("Host ID is %s\n", host);
-	}
-
-	// for class C, first three octet are Network ID
-	// and rest are Host ID
-	else if (ipClass == 'C')
-	{
-		int i = 0, j = 0, dotCount = 0;
-
-		// storing in network[] up to 3rd dot
-		// dotCount keeps track of number of
-		// dots or octets passed
-		while (dotCount < 3)
-		{
-			network[i++] = str[j++];
-			if (str[j] == '.')
-				dotCount++;
-		}
-
-		i = 0;
-		j++;
-
-		while (str[j] != '\0')
-			host[i++] = str[j++];
-
-		printf("Network ID is %s\n", network);
-		printf("Host ID is %s\n", host);
-	}
-
-	// Class D and E are not divided in Network
-	// and Host ID
-	else
-		printf("In this Class, IP address is not"
-		" divided into Network and Host ID\n");
-}
-
-// Driver function is to test above function
-int main()
-{
-	char str[] = "192.226.12.11";
-	char ipClass = findClass(str);
-	printf("Given IP address belongs to Class %c\n",
-										ipClass);
-	separate(str, ipClass);
-	return 0;
+    return 0;
 }
