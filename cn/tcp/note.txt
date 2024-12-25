@@ -1,0 +1,94 @@
+Absolutely! Let’s break it down into simple explanations so that it's easier to understand and remember.
+
+### **Server Code (TCP Server) Explanation:**
+
+1. **Create a socket**:
+   - We use `socket()` to create a communication endpoint. It allows us to send and receive data over the network. Here, we use `AF_INET` (IPv4) and `SOCK_STREAM` (TCP) to create a TCP socket.
+   
+   ```c
+   SocketFD = socket(AF_INET, SOCK_STREAM, 0);
+   ```
+
+2. **Bind the socket to an IP and port**:
+   - The `bind()` function attaches the socket to a specific port on the local machine. We tell it to listen on port `1109` (you can choose any free port).
+   
+   ```c
+   stSockAddr.sin_port = htons(1109);
+   stSockAddr.sin_addr.s_addr = INADDR_ANY;  // Listens on all available network interfaces
+   ```
+
+3. **Listen for incoming connections**:
+   - The `listen()` function tells the server to listen for incoming client connections. It can handle up to 2 clients at a time (`listen(SocketFD, 2)`).
+   
+   ```c
+   listen(SocketFD, 2);
+   ```
+
+4. **Accept a connection**:
+   - The `accept()` function is used to accept an incoming client connection. This gives us a new socket (`connectFD`) to communicate with that client.
+   
+   ```c
+   connectFD = accept(SocketFD, (struct sockaddr*)&cli_addr, &addr_len);
+   ```
+
+5. **Receive and respond to data**:
+   - Inside the loop, we use `read()` to get data from the client and `write()` to send data back. If the client sends `"x"`, we break the loop and close the connection.
+
+   ```c
+   int n = read(connectFD, buff, sizeof(buff) - 1);
+   write(connectFD, buff, strlen(buff));
+   ```
+
+6. **Close the connection**:
+   - When done, we close both the client connection and the server socket to free resources.
+
+### **Client Code (TCP Client) Explanation:**
+
+1. **Create a socket**:
+   - Similar to the server, we use `socket()` to create a TCP socket that can communicate over IPv4.
+   
+   ```c
+   SocketFD = socket(AF_INET, SOCK_STREAM, 0);
+   ```
+
+2. **Set up the server address**:
+   - Here, we define the server's IP address (`127.0.0.1`, which means "localhost") and the port number (`1109`), matching the server's configuration.
+
+   ```c
+   stSockAddr.sin_port = htons(1109);
+   inet_pton(AF_INET, "127.0.0.1", &stSockAddr.sin_addr);  // Converts IP to binary format
+   ```
+
+3. **Connect to the server**:
+   - We use `connect()` to establish a connection to the server at the specified IP and port.
+   
+   ```c
+   connect(SocketFD, (struct sockaddr*)&stSockAddr, sizeof(stSockAddr));
+   ```
+
+4. **Send and receive data**:
+   - Inside the loop, the client sends data to the server using `write()` and waits for a response with `read()`. If the server sends `"x"`, the client stops the loop and closes the connection.
+
+   ```c
+   write(SocketFD, buff, strlen(buff));  // Send data
+   int n = read(SocketFD, buff, sizeof(buff) - 1);  // Receive data
+   ```
+
+5. **Close the connection**:
+   - After communication ends, we close the socket.
+
+### **Key Points to Remember:**
+
+- **Sockets**: Sockets are like "communication channels" that allow different computers or processes to talk to each other.
+- **TCP**: This is a reliable connection-oriented protocol. The server listens for connections, and the client connects to the server.
+- **Server vs Client**:
+   - The **server** creates a socket, binds it to a port, listens for incoming connections, and processes requests.
+   - The **client** creates a socket and connects to the server, sending and receiving data.
+- **Sending and Receiving Data**:
+   - Use `read()` to receive data and `write()` to send data.
+   - Always null-terminate strings you receive (important for proper string handling).
+- **`inet_pton`**: Converts an IP address in string format (e.g., `"127.0.0.1"`) to binary format that the socket can use.
+
+By breaking down the steps, you can easily remember the flow of communication: **Server listens, client connects, send data back and forth, and then close**.
+
+Let me know if you need more clarification on any part!
